@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1069521383061",
+    "project_id": "maasps",
+    "storage_bucket": "maasps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069521383061:android:91846fe595dd62e482759c",
+        "android_client_info": {
+          "package_name": "com.example.sps_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnbBOl02iFKNBpVil3lsdBUVAi2XLHMUQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
