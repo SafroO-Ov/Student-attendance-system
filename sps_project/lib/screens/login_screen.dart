@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -46,9 +47,14 @@ class _LoginScreenState extends State<LoginScreen> {
             password: _password,
           );
 
+// Получение FCM-токена
+          final fcmToken = await FirebaseMessaging.instance.getToken();
+          print('FCM Token: $fcmToken');
+
           Map<String, dynamic> userData = {
             'fio': _fio,
             'role': _role,
+            'fcmToken': fcmToken, // Добавляем FCM токен
           };
 
           if (_role == 'Староста') {
@@ -144,83 +150,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-// import 'package:flutter/material.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:sps_project/screens/leader_main_screen.dart';
-// import 'package:sps_project/screens/register_screen.dart';
-// import 'package:sps_project/screens/teacher_main_screen.dart';
-//
-// class LoginScreen extends StatefulWidget {
-//   @override
-//   _LoginScreenState createState() => _LoginScreenState();
-// }
-//
-// class _LoginScreenState extends State<LoginScreen> {
-//   @override
-//   void initState() {
-//     super.initState();
-//
-// // Получение токена FCM для устройства
-//     FirebaseMessaging.instance.getToken().then((token) {
-//       print('FCM Token: $token');
-//     });
-//
-// // Обработка уведомлений, когда приложение активно
-//     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-//       print('Получено уведомление: ${message.notification?.title}');
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Новое уведомление: ${message.notification?.body}')),
-//       );
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: Text('Вход в систему')),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(builder: (context) => LeaderMainScreen()),
-//                 );
-//               },
-//               child: Text('Вход: Староста группы'),
-//             ),
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(builder: (context) => TeacherMainScreen()),
-//                 );
-//               },
-//               child: Text('Вход: Преподаватель'),
-//             ),
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(builder: (context) => RegisterScreen(role: 'Староста группы')),
-//                 );
-//               },
-//               child: Text('Регистрация: Староста группы'),
-//             ),
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(builder: (context) => RegisterScreen(role: 'Преподаватель')),
-//                 );
-//               },
-//               child: Text('Регистрация: Преподаватель'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

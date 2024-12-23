@@ -1,64 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AttendanceMarkingScreen extends StatefulWidget {
-  final List<String> students; // Список студентов группы
-  final String groupName; // Имя группы
+  final String groupName;
 
-  AttendanceMarkingScreen({required this.students, required this.groupName});
+  AttendanceMarkingScreen({required this.groupName});
 
   @override
   _AttendanceMarkingScreenState createState() => _AttendanceMarkingScreenState();
 }
 
 class _AttendanceMarkingScreenState extends State<AttendanceMarkingScreen> {
-  final Map<String, bool> _attendance = {}; // Отслеживание посещаемости
+  Map<String, bool> _attendance = {};
 
   @override
   void initState() {
     super.initState();
-    for (var student in widget.students) {
-      _attendance[student] = true; // Изначально все студенты отмечены как присутствующие
+    _loadGroupData();
+  }
+
+  Future<void> _loadGroupData() async {
+    try {
+      final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(widget.groupName).get();
+
+      if (!groupDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Группа не найдена.')));
+        return;
+      }
+
+      final students = List<String>.from(groupDoc['students']);
+      setState(() {
+        _attendance = {for (var student in students) student: true};
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+      print('Ошибка в _loadGroupData: $e');
     }
   }
 
-  void _submitAttendance() {
-    final absentStudents = _attendance.entries
-        .where((entry) => !entry.value) // Фильтруем отсутствующих студентов
+  Future<void> _submitAttendance() async {
+    final absentees = _attendance.entries
+        .where((entry) => !entry.value)
         .map((entry) => entry.key)
         .toList();
 
-    Navigator.pop(context, {
-      'absentees': absentStudents,
+    await FirebaseFirestore.instance.collection('attendance').doc(widget.groupName).update({
+      'absentees': absentees,
       'expectedCount': _attendance.length,
     });
+
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Посещение сохранено')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Отметить студентов (${widget.groupName})')),
-      body: Column(
+      appBar: AppBar(title: Text('Отметить студентов')),
+      body: _attendance.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView(
         children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.students.length,
-              itemBuilder: (context, index) {
-                final student = widget.students[index];
-                return CheckboxListTile(
-                  title: Text(student),
-                  value: _attendance[student],
-                  onChanged: (value) {
-                    setState(() {
-                      _attendance[student] = value!;
-                    });
-                  },
-                );
+          for (var student in _attendance.keys)
+            CheckboxListTile(
+              title: Text(student),
+              value: _attendance[student],
+              onChanged: (value) {
+                setState(() {
+                  _attendance[student] = value!;
+                });
               },
             ),
-          ),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _submitAttendance,
-            child: Text('Завершить отметку'),
+            child: Text('Сохранить посещение'),
           ),
         ],
       ),

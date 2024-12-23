@@ -4,10 +4,10 @@ class ResultsScreen extends StatelessWidget {
   @override
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final int facesCount = args['facesCount'];
-    final int expectedCount = args['expectedCount'];
-    final List<String> absentees = args['absentees'];
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final int facesCount = args['facesCount'] ?? 0;
+    final int expectedCount = args['expectedCount'] ?? 0;
+    final List<String> absentees = args['absentees'] ?? [];
 
     return Scaffold(
       appBar: AppBar(title: Text('Результаты занятия')),
@@ -21,7 +21,9 @@ class ResultsScreen extends StatelessWidget {
             SizedBox(height: 20),
             Text('Отсутствующие студенты:', style: TextStyle(fontSize: 18)),
             Expanded(
-              child: ListView.builder(
+              child: absentees.isEmpty
+                  ? Text('Все студенты присутствуют.')
+                  : ListView.builder(
                 itemCount: absentees.length,
                 itemBuilder: (context, index) {
                   return ListTile(title: Text(absentees[index]));
