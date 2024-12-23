@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/color"
 	"image/jpeg"
 	"log"
 	"net/http"
@@ -20,9 +21,7 @@ func main() {
 	// Загрузка модели из файла
 	modelPath := "face.xml" // Укажите путь к загруженному XML-файлу
 	classifier := gocv.NewCascadeClassifier()
-	if !classifier.Load(modelPath) {
-		log.Fatalf("Ошибка загрузки модели: %s", modelPath)
-	}
+	classifier.Load(modelPath)
 	defer classifier.Close()
 
 	http.HandleFunc("/process", func(w http.ResponseWriter, r *http.Request) {
@@ -55,9 +54,9 @@ func main() {
 		defer matImg.Close()
 
 		// Поиск лиц на изображении
-		min_img := image.Point{0, 0}
-		max_img := image.Point{1000, 1000}
-		rects := classifier.DetectMultiScaleWithParams(matImg, 1.8, 2, 2, min_img, max_img)
+		min_img := image.Point{100, 100}
+		max_img := image.Point{10000, 10000}
+		rects := classifier.DetectMultiScaleWithParams(matImg, 1.6, 2, 2, min_img, max_img)
 		count := len(rects)
 
 		// Логирование количества лиц
@@ -67,6 +66,16 @@ func main() {
 		response := Response{Count: count}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
+
+		// Вывод фото с отмеченными лицами
+		color := color.RGBA{0, 255, 0, 0}
+		window := gocv.NewWindow("Демонстрация")
+		defer window.Close()
+		for _, r := range rects {
+			gocv.Rectangle(&matImg, r, color, 3)
+		}
+		window.IMShow(matImg)
+		window.WaitKey(15000)
 	})
 
 	fmt.Println("Сервер запущен на порту 5000")
